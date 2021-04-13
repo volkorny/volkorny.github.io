@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Діти</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.1.0/anime.min.js"></script>
+<script src="moment-precise-range.js"></script>
+
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+
+<style>
+
+@media only screen and (max-width: 1000px) {
+  table {
+    font-size: 4.5vw;
+    width: 100%;
+  }
+}
+
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: center;
+  padding: 12px;
+}
+
+tr:nth-child(even) {
+  background-color: #fffae6;
+}
+</style>
+</head>
+<body>
+
+<table id="myTable"></table>
+
+<script>
+
+var childrenArray = [
+    { name: "Роман",       y: 2008, m: 11, d: 27 },
+    { name: "Ангеліна",    y: 2016, m:  4, d: 14 },
+    { name: "Данило",      y: 2018, m:  8, d: 30 },
+    { name: "---   ---",   y: 0                  },
+    { name: "Іван",        y: 2011, m:  7, d:  6 },
+    { name: "Богдан",      y: 2014, m:  8, d: 12 },
+    { name: "Настя",       y: 2015, m:  4, d: 28 },
+    { name: "Світлана",    y: 2018, m:  9, d: 26 },
+    { name: "---   ---",   y: 0                  },
+    { name: "Настя",       y: 2013, m:  8, d: 23 },
+    { name: "Артем",       y: 2015, m:  6, d: 22 },
+    { name: "---   ---",   y: 0                  },
+    { name: "Василь",      y: 2005, m:  1, d: 12 },
+    { name: "Володя",      y: 2006, m:  4, d: 12 },
+    { name: "Соломія",     y: 2010, m: 12, d: 26 },
+    { name: "Софія",       y: 2011, m:  7, d: 10 },
+    { name: "---   ---",   y: 0                  },
+    { name: "Іра",         y: 1996, m:  6, d: 23 },
+    { name: "Юра",         y: 2000, m: 10, d: 23 },
+    { name: "---   ---",   y: 0                  },
+    { name: "Тая",         y: 2020, m:  1, d:  1 },
+    { name: "Аня",         y: 2020, m:  1, d:  1 },
+    { name: "---   ---",   y: 0                  },
+    { name: "Володя",      y: 2013, m: 11, d: 22 },
+    { name: "Владік",      y: 2015, m:  5, d: 26 },
+    { name: "Марічка",     y: 2017, m:  2, d: 17 },
+    { name: "Макар",       y: 2017, m: 11, d: 19 },
+    { name: "Дівчинка",    y: 2020, m:  3, d: 20 }
+];
+
+for ( var i = childrenArray.length-1; i >= 0; i-- ) {
+    var child = childrenArray[i];
+    addAnimatedChild( child.name, child.y, child.m, child.d, i );
+}
+
+function addAnimatedChild(name,y,m,d, id) {
+
+    var dob = moment(new Date(y, m-1, d, 0, 0, 0));
+  
+    var now = moment(new Date);        
+    var diff = moment.preciseDiff(dob,now,true);
+    var d_years = diff.years;
+    var d_months = diff.months;
+    var d_days = diff.days;
+  
+    var table = document.getElementById("myTable");
+    var row = table.insertRow(0);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
+  
+    var age  = "";
+    var bday = "";
+  
+    cell1.innerHTML = name;
+    if ( y != 0 ) {
+  
+        cell2.innerHTML = d + " " + getMonth(m) + " " + y;
+        cell3.innerHTML = "0 р. 0 м. 0 д.";
+        cell3.className = "battery-log" + id;
+    
+        animateChildById(d_years, d_months, d_days, id );
+      
+    }
+}
+
+function getMonth (idx) {
+
+    var objDate = new Date();
+    objDate.setDate(1);
+    objDate.setMonth(idx-1);
+
+    var month = objDate.toLocaleString(
+    	"uk-UK", 
+    	{ month: "long" }
+    );
+
+    return month;
+}
+
+    function animateChildById (y,m,d,i) {
+
+        var logEl = document.querySelector( '.battery-log' + i );
+
+        var battery = {
+            charged: '0%',
+            cycles: 120,
+            y:0,
+            m:0,
+            d:0
+        }
+
+        anime({
+            targets: battery,
+            charged: '100%',
+            cycles: 130,
+            y: y,
+            m: m,
+            d: d,
+            round: 1,
+            easing: 'linear',
+            delay: 1000,
+            duration: 2000,
+            update: function() {
+              logEl.innerHTML =  battery.y + " р. " + battery.m + " м. " + battery.d + " д.";
+            }
+        });
+    }
+
+</script>
+</body>
+</html>
