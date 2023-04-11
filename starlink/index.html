@@ -1,0 +1,63 @@
+<html>
+
+<style>
+
+.button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 50px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+p {
+    font-size: 20px;
+    margin: 5px;
+}
+
+</style>
+
+<body>
+<p>Мені 100:<br><a class="js-emaillink1" href="">*134*1*2*380977341758*100*4921#</a></p>
+<p><button onClick="copy('.js-emaillink1')" class="button">Copy</button></p>
+
+<p>Ірі 10:<br><a class="js-emaillink2" href="">*134*1*2*380961717345*10*4921#</a></p>
+<p><button onClick="copy('.js-emaillink2')" class="button">Copy</button></p>
+
+<p>Тещі:<br><a class="js-emaillink3" href="">*134*1*2*380974115922*10*4921#</a></p>
+<p><button onClick="copy('.js-emaillink3')" class="button">Copy</button></p>
+
+<p>* 134 * 1 * 2 * номер телефону * сума * ХХХХ # ХХХХ-останні чотири цифри номера активованої банківської карти. номер телефону - в форматі 38067ХХХХХХХ</p>
+
+
+<script>
+
+function copy(selector) {
+  console.log(selector)
+
+  // Select the email link anchor text  
+  var emailLink = document.querySelector(selector);  
+  var range = document.createRange();  
+  range.selectNode(emailLink);  
+  window.getSelection().addRange(range);
+
+  try {  
+    // Now that we've selected the anchor text, execute the copy command  
+    var successful = document.execCommand('copy');  
+    var msg = successful ? 'successful' : 'unsuccessful';  
+    console.log('Copy email command was ' + msg);  
+  } catch(err) {  
+    console.log('Oops, unable to copy');  
+  }
+
+  // Remove the selections - NOTE: Should use
+  // removeRange(range) when it is supported  
+  window.getSelection().removeAllRanges();  
+
+}
+</script>
+</body>
+</html>
