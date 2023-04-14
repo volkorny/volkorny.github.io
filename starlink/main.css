@@ -55,3 +55,11 @@ button {
   padding: 20px;
   text-align: center;
 }
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+  /* Font size for mobile */
+  body {
+    font-size: 28px;
+  }
+}
