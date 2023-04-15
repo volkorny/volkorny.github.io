@@ -22,6 +22,13 @@ h2 {
 p {
   line-height: 1.5;
   margin-bottom: 20px;
+
+
+  width: 500px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+
 }
 
 a {
