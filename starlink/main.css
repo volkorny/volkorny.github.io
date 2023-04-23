@@ -1,6 +1,6 @@
 body {
   font-family: Arial, sans-serif;
-  font-size: 18px;
+  font-size: 25px;
   color: #333;
   background-color: #f2f2f2;
 }
@@ -22,13 +22,9 @@ h2 {
 p {
   line-height: 1.5;
   margin-bottom: 20px;
-
-
   width: 500px;
   overflow: hidden;
   text-overflow: ellipsis;
-
-
 }
 
 a {
@@ -67,6 +63,6 @@ button {
 @media (max-width: 768px) {
   /* Font size for mobile */
   body {
-    font-size: 28px;
+    font-size: 25px;
   }
 }

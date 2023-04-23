@@ -78,7 +78,7 @@ p {
 <a class="js-emaillink1" href="">
 Львів<br>
 Oleh Kovalskyy<br>
-+380634448181<br><br>
++380634448181<br>
 Київ<br>
 +380682182667<br>
 Євген
@@ -103,29 +103,34 @@ https://docs.google.com/document/d/1mw3lteBkdlPxX4jb9QG0E8AdCbZoW_U5X4KF8zLmjV4/
   </a></p>
   <p><button onClick="copy('.js-emaillink4')" class="button">Copy</button></p>
 
+<p><b>Дуже радий бачити нове відео</b><br><a class="js-emaillink5" href="">
+Дуже радий бачити нове відео. Дякую за вашу працю!
+</a></p>
+<p><button onClick="copy('.js-emaillink5')" class="button">Copy</button></p>
+
 <script>
 
 function copy(selector) {
   console.log(selector)
 
-  // Select the email link anchor text  
-  var emailLink = document.querySelector(selector);  
-  var range = document.createRange();  
-  range.selectNode(emailLink);  
+  // Select the email link anchor text
+  var emailLink = document.querySelector(selector);
+  var range = document.createRange();
+  range.selectNode(emailLink);
   window.getSelection().addRange(range);
 
-  try {  
-    // Now that we've selected the anchor text, execute the copy command  
-    var successful = document.execCommand('copy');  
-    var msg = successful ? 'successful' : 'unsuccessful';  
-    console.log('Copy email command was ' + msg);  
-  } catch(err) {  
-    console.log('Oops, unable to copy');  
+  try {
+    // Now that we've selected the anchor text, execute the copy command
+    var successful = document.execCommand('copy');
+    var msg = successful ? 'successful' : 'unsuccessful';
+    console.log('Copy email command was ' + msg);
+  } catch(err) {
+    console.log('Oops, unable to copy');
   }
 
   // Remove the selections - NOTE: Should use
-  // removeRange(range) when it is supported  
-  window.getSelection().removeAllRanges();  
+  // removeRange(range) when it is supported
+  window.getSelection().removeAllRanges();
 
 }
 </script>
