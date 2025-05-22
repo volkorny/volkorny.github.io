@@ -145,19 +145,10 @@
                 cursor: not-allowed;
                 transform: none;
             }
-
-            .status {
-                margin-top: 20px;
-                padding: 10px 20px;
-                background-color: white;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                font-weight: bold;
-            }
         </style>
     </head>
     <body>
-        <h1>Countdown Bars Animation</h1>
+        <h1>Бонус за підйом!</h1>
 
         <div class="controls">
             <button class="start-btn" id="startBtn">Start</button>
@@ -195,8 +186,6 @@
                 <div class="bar-label">25 ГРН</div>
             </div>
         </div>
-
-        <div class="status" id="status">Ready to start animation</div>
 
         <script>
             class CountdownBar {
@@ -341,7 +330,6 @@
             // UI elements
             const startBtn = document.getElementById("startBtn");
             const resetBtn = document.getElementById("resetBtn");
-            const status = document.getElementById("status");
 
             let isRunning = false;
             let statusCheckInterval = null;
@@ -361,7 +349,6 @@
                 isRunning = true;
                 startBtn.disabled = true;
                 startBtn.textContent = "Running...";
-                status.textContent = "Animation in progress...";
 
                 // Start all bars
                 bars.forEach((bar) => bar.start());
@@ -375,7 +362,6 @@
                 isRunning = false;
                 startBtn.disabled = false;
                 startBtn.textContent = "Start";
-                status.textContent = "Ready to start animation";
 
                 if (statusCheckInterval) {
                     clearInterval(statusCheckInterval);
@@ -393,8 +379,6 @@
                     isRunning = false; // Allows for restart
                     startBtn.disabled = false; // Re-enable start button
                     startBtn.textContent = "Start";
-                    status.textContent =
-                        "Animation completed! All bars reached 0%";
 
                     if (statusCheckInterval) {
                         clearInterval(statusCheckInterval);
