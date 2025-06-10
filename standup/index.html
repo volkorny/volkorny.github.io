@@ -4,11 +4,20 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Daily Activity Tracker</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
         <style>
             * {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
+            }
+
+            body.flash-black {
+                background: #000; /* Solid black */
+                transition: background 0.1s ease-in-out; /* Quick transition to black */
             }
 
             body {
@@ -21,19 +30,53 @@
             .container {
                 max-width: 1200px;
                 margin: 0 auto;
-                background: rgba(255, 255, 255, 0.95);
+                background: rgba(
+                    255,
+                    255,
+                    255,
+                    0.95
+                ); /* This is the initial "white" */
                 border-radius: 20px;
                 padding: 30px;
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
                 backdrop-filter: blur(10px);
             }
 
+            .header {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+                margin-bottom: 10px;
+            }
+
             h1 {
                 text-align: center;
                 color: #2c3e50;
-                margin-bottom: 10px;
                 font-size: 2.5em;
                 font-weight: 300;
+            }
+
+            #sound-toggle {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #ecf0f1;
+                border: none;
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                font-size: 1.2em;
+                color: #2c3e50;
+                cursor: pointer;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+
+            #sound-toggle:hover {
+                background: #bdc3c7;
+                transform: translateY(-50%) scale(1.1);
             }
 
             .current-time {
@@ -95,7 +138,19 @@
                 color: white;
                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
                 transition: all 0.3s ease;
+                gap: 8px; /* Increased gap for bigger icon */
             }
+
+            /* --- Icon Styling --- */
+            .activity-segment .fas {
+                font-size: 1.4em; /* Make icons in the bar bigger */
+            }
+
+            .legend-text .fas {
+                font-size: 1.5em; /* Make icons in the legend bigger */
+                vertical-align: middle;
+            }
+            /* --- End Icon Styling --- */
 
             .sitting {
                 background: linear-gradient(135deg, #3498db, #2980b9);
@@ -112,9 +167,9 @@
             .time-marker {
                 position: absolute;
                 top: -5px;
-                width: 3px;
+                width: 10px;
                 height: 50px;
-                background: linear-gradient(135deg, #f39c12, #e67e22);
+                background: yellow;
                 border-radius: 2px;
                 box-shadow: 0 2px 10px rgba(243, 156, 18, 0.5);
                 z-index: 10;
@@ -125,12 +180,12 @@
                 content: "";
                 position: absolute;
                 top: -8px;
-                left: -5px;
+                left: -1px;
                 width: 0;
                 height: 0;
                 border-left: 6px solid transparent;
                 border-right: 6px solid transparent;
-                border-top: 8px solid #f39c12;
+                border-top: 8px solid black;
             }
 
             .legend {
@@ -144,7 +199,7 @@
             .legend-item {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 12px;
             }
 
             .legend-color {
@@ -156,7 +211,22 @@
             .legend-text {
                 font-weight: 500;
                 color: #2c3e50;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
+
+            /* --- Colored Legend Icons --- */
+            .legend-color.sitting + .legend-text .fas {
+                color: #3498db;
+            }
+            .legend-color.standing + .legend-text .fas {
+                color: #e74c3c;
+            }
+            .legend-color.walking + .legend-text .fas {
+                color: #2ecc71;
+            }
+            /* --- End Colored Legend Icons --- */
 
             @media (max-width: 768px) {
                 .container {
@@ -165,6 +235,17 @@
 
                 h1 {
                     font-size: 2em;
+                }
+
+                .header {
+                    flex-direction: column;
+                    gap: 15px;
+                    margin-bottom: 20px;
+                }
+
+                #sound-toggle {
+                    position: static;
+                    transform: none;
                 }
 
                 .hour-bar {
@@ -185,7 +266,12 @@
     </head>
     <body>
         <div class="container">
-            <h1>Daily Activity Tracker</h1>
+            <div class="header">
+                <h1>Daily Activity Tracker</h1>
+                <button id="sound-toggle">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
             <div class="current-time" id="currentTime"></div>
 
             <div id="hourBars"></div>
@@ -193,41 +279,94 @@
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-color sitting"></div>
-                    <span class="legend-text">Sitting (15 min)</span>
+                    <span class="legend-text">
+                        <i class="fas fa-chair"></i> Sitting (15 min)
+                    </span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color standing"></div>
-                    <span class="legend-text">Standing (15/5 min)</span>
+                    <span class="legend-text">
+                        <i class="fas fa-male"></i> Standing (15/5 min)
+                    </span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color walking"></div>
-                    <span class="legend-text">Walking/Running (10 min)</span>
+                    <span class="legend-text">
+                        <i class="fas fa-walking"></i> Walking/Running (10 min)
+                    </span>
                 </div>
             </div>
         </div>
 
+        <audio id="notification-sound" src="e1.mp3" preload="auto"></audio>
+
         <script>
+            let lastActiveActivityIndex = -1; // To track activity changes
+            let isSoundEnabled = true; // To control sound state
+            let soundTimeout; // To store the timeout ID for pausing sound
+            let backgroundFlashTimeout; // To store the timeout ID for overall background flash duration
+            let flashInterval; // To store the interval ID for the rapid flashing
+
+            const soundToggleButton = document.getElementById("sound-toggle");
+            const soundToggleIcon = soundToggleButton.querySelector("i");
+            const notificationSound =
+                document.getElementById("notification-sound");
+            const containerElement = document.querySelector(".container"); // Get the container element
+
             const activities = [
-                { type: "sitting", duration: 15, label: "Sit" },
-                { type: "standing", duration: 15, label: "Stand" },
-                { type: "sitting", duration: 15, label: "Sit" },
-                { type: "standing", duration: 5, label: "Stand" },
-                { type: "walking", duration: 10, label: "Walk" },
+                {
+                    type: "sitting",
+                    duration: 15,
+                    label: "Sit",
+                    icon: "fa-chair",
+                },
+                {
+                    type: "standing",
+                    duration: 15,
+                    label: "Stand",
+                    icon: "fa-male",
+                },
+                {
+                    type: "sitting",
+                    duration: 15,
+                    label: "Sit",
+                    icon: "fa-chair",
+                },
+                {
+                    type: "standing",
+                    duration: 5,
+                    label: "Stand",
+                    icon: "fa-male",
+                },
+                {
+                    type: "walking",
+                    duration: 10,
+                    label: "Walk",
+                    icon: "fa-walking",
+                },
             ];
 
             function updateTime() {
                 const now = new Date();
-                const timeString = now.toLocaleTimeString();
+                const timeString = now.toLocaleTimeString("en-GB", {
+                    hourCycle: "h23",
+                }); // Changed to 24-hour format
                 document.getElementById("currentTime").textContent =
                     `Current Time: ${timeString}`;
 
+                updateDisplayedHours(now);
                 updateActiveBar(now);
             }
 
-            function createHourBars() {
+            function updateDisplayedHours(now) {
+                const currentHour = now.getHours();
                 const container = document.getElementById("hourBars");
+                container.innerHTML = "";
 
-                for (let hour = 7; hour <= 21; hour++) {
+                const startHour = Math.max(5, currentHour - 4);
+                const endHour = Math.min(23, currentHour + 4);
+
+                for (let hour = startHour; hour <= endHour; hour++) {
                     const hourBar = document.createElement("div");
                     hourBar.className = "hour-bar";
                     hourBar.id = `hour-${hour}`;
@@ -248,7 +387,14 @@
                         segment.className = `activity-segment ${activity.type}`;
                         const widthPercent = (activity.duration / 60) * 100;
                         segment.style.width = `${widthPercent}%`;
-                        segment.textContent = activity.label;
+
+                        const icon = document.createElement("i");
+                        icon.className = `fas ${activity.icon}`;
+                        segment.appendChild(icon);
+
+                        const text = document.createTextNode(activity.label);
+                        segment.appendChild(text);
+
                         activityBar.appendChild(segment);
                         totalWidth += activity.duration;
                     });
@@ -264,7 +410,6 @@
                 const currentHour = now.getHours();
                 const currentMinutes = now.getMinutes();
 
-                // Remove active class from all bars
                 document.querySelectorAll(".hour-bar").forEach((bar) => {
                     bar.classList.remove("active");
                     const marker = bar.querySelector(".time-marker");
@@ -273,19 +418,16 @@
                     }
                 });
 
-                // Add active class to current hour bar
-                if (currentHour >= 7 && currentHour <= 21) {
+                if (currentHour >= 7 && currentHour <= 23) {
                     const activeBar = document.getElementById(
                         `hour-${currentHour}`,
                     );
                     if (activeBar) {
                         activeBar.classList.add("active");
 
-                        // Add time marker
                         const marker = document.createElement("div");
                         marker.className = "time-marker";
 
-                        // Calculate position based on current minutes
                         const progressPercent = (currentMinutes / 60) * 100;
                         marker.style.left = `${progressPercent}%`;
 
@@ -294,7 +436,6 @@
                         );
                         activityContainer.appendChild(marker);
 
-                        // Highlight active activity segment
                         highlightActiveSegment(activeBar, currentMinutes);
                     }
                 }
@@ -303,14 +444,16 @@
             function highlightActiveSegment(hourBar, minutes) {
                 const segments = hourBar.querySelectorAll(".activity-segment");
                 let totalTime = 0;
+                let newActiveIndex = -1;
 
                 segments.forEach((segment, index) => {
                     const activityDuration = activities[index].duration;
-
-                    if (
+                    const isActive =
                         minutes >= totalTime &&
-                        minutes < totalTime + activityDuration
-                    ) {
+                        minutes < totalTime + activityDuration;
+
+                    if (isActive) {
+                        newActiveIndex = index;
                         segment.style.opacity = "1";
                         segment.style.transform = "scale(1.05)";
                         segment.style.boxShadow =
@@ -323,14 +466,90 @@
 
                     totalTime += activityDuration;
                 });
+
+                if (
+                    newActiveIndex !== lastActiveActivityIndex &&
+                    newActiveIndex !== -1
+                ) {
+                    // Stop any existing background flashing
+                    if (flashInterval) {
+                        clearInterval(flashInterval);
+                        containerElement.style.background =
+                            "rgba(255, 255, 255, 0.95)"; // Ensure it's white when stopping
+                    }
+                    if (backgroundFlashTimeout) {
+                        clearTimeout(backgroundFlashTimeout);
+                    }
+
+                    let isBlack = false;
+                    flashInterval = setInterval(() => {
+                        if (isBlack) {
+                            containerElement.style.background =
+                                "rgba(255, 255, 255, 0.95)"; // White
+                        } else {
+                            containerElement.style.background = "#000"; // Black
+                        }
+                        isBlack = !isBlack;
+                    }, 500); // Flash every 0.5 seconds (500ms)
+
+                    // Stop flashing after 10 seconds (you can adjust this to 5 seconds if preferred)
+                    backgroundFlashTimeout = setTimeout(() => {
+                        clearInterval(flashInterval);
+                        containerElement.style.background =
+                            "rgba(255, 255, 255, 0.95)"; // Reset to original white background
+                    }, 10000); // Stop after 10 seconds (10000ms)
+
+                    if (isSoundEnabled) {
+                        if (soundTimeout) {
+                            clearTimeout(soundTimeout);
+                        }
+
+                        notificationSound.currentTime = 0;
+                        notificationSound.play().catch((error) => {
+                            console.log(
+                                "Playback failed. User interaction may be required to enable sound.",
+                            );
+                        });
+
+                        soundTimeout = setTimeout(() => {
+                            notificationSound.pause();
+                            notificationSound.currentTime = 0;
+                        }, 10000);
+                    }
+                    lastActiveActivityIndex = newActiveIndex;
+                }
             }
 
-            // Initialize
-            createHourBars();
+            soundToggleButton.addEventListener("click", () => {
+                isSoundEnabled = !isSoundEnabled;
+                if (isSoundEnabled) {
+                    soundToggleIcon.className = "fas fa-volume-up";
+                    if (soundTimeout) {
+                        clearTimeout(soundTimeout);
+                    }
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch((error) => {
+                        console.log(
+                            "Confirmation sound failed. User interaction may be required.",
+                        );
+                    });
+                    soundTimeout = setTimeout(() => {
+                        notificationSound.pause();
+                        notificationSound.currentTime = 0;
+                    }, 10000);
+                } else {
+                    soundToggleIcon.className = "fas fa-volume-mute";
+                    notificationSound.pause();
+                    notificationSound.currentTime = 0;
+                    if (soundTimeout) {
+                        clearTimeout(soundTimeout);
+                    }
+                }
+            });
+
             updateTime();
 
-            // Update every second
-            setInterval(updateTime, 1000);
+            setInterval(updateTime, 1 * 1000);
         </script>
     </body>
 </html>
