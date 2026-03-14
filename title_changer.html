@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Page</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #333;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: #6c63ff;
+    }
+
+    button {
+      margin-top: 16px;
+      width: 100%;
+      padding: 13px;
+      background: #6c63ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: #574fd6;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .feedback {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #eef7ee;
+      border-left: 4px solid #4caf50;
+      border-radius: 6px;
+      color: #2e7d32;
+      font-size: 0.9rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Page Title Changer</h1>
+    <p>Type a new title below and watch the browser tab update instantly.</p>
+
+    <label for="titleInput">New page title</label>
+    <input type="text" id="titleInput" placeholder="Enter a title..." />
+
+    <button onclick="changeTitle()">Apply Title</button>
+
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <script>
+    function changeTitle() {
+      const input = document.getElementById('titleInput').value.trim();
+      const feedback = document.getElementById('feedback');
+
+      if (!input) {
+        feedback.style.display = 'block';
+        feedback.style.background = '#fff3e0';
+        feedback.style.borderLeftColor = '#ff9800';
+        feedback.style.color = '#e65100';
+        feedback.textContent = '⚠️ Please enter a title first.';
+        return;
+      }
+
+      document.title = input;
+
+      feedback.style.display = 'block';
+      feedback.style.background = '#eef7ee';
+      feedback.style.borderLeftColor = '#4caf50';
+      feedback.style.color = '#2e7d32';
+      feedback.textContent = `✅ Title changed to: "${input}"`;
+    }
+
+    // Allow pressing Enter to submit
+    document.getElementById('titleInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') changeTitle();
+    });
+  </script>
+
+</body>
+</html>
