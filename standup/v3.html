@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Daily Activity Planner</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                overflow-x: auto;
+            }
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+                font-size: 2.5em;
+                font-weight: 300;
+                margin-bottom: 20px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 4px;
+            }
+
+            th {
+                color: #2c3e50;
+                font-weight: 600;
+                padding: 6px;
+                white-space: nowrap;
+            }
+
+            th.total-head .fas {
+                margin-right: 4px;
+            }
+
+            td {
+                border-radius: 8px;
+                padding: 6px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            td.hour-label {
+                font-weight: bold;
+                color: #2c3e50;
+                font-size: 1.1em;
+                background: #ecf0f1;
+                white-space: nowrap;
+            }
+
+            tr.current td.hour-label {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+            }
+
+            td.interval {
+                background: #ecf0f1;
+                transition: background 0.2s ease;
+            }
+
+            td.interval label {
+                display: block;
+                text-align: left;
+                font-size: 0.85em;
+                white-space: nowrap;
+                cursor: pointer;
+            }
+
+            td.interval.sitting {
+                background: #d6eaf8;
+            }
+
+            td.interval.standing {
+                background: #fadbd8;
+            }
+
+            td.interval.walking {
+                background: #d5f5e3;
+            }
+
+            td.total {
+                font-weight: 600;
+                color: white;
+                min-width: 70px;
+            }
+
+            td.total.sitting {
+                background: linear-gradient(135deg, #3498db, #2980b9);
+            }
+
+            td.total.standing {
+                background: linear-gradient(135deg, #e74c3c, #c0392b);
+            }
+
+            td.total.walking {
+                background: linear-gradient(135deg, #2ecc71, #27ae60);
+            }
+
+            th.total-head.sitting .fas {
+                color: #2980b9;
+            }
+
+            th.total-head.standing .fas {
+                color: #c0392b;
+            }
+
+            th.total-head.walking .fas {
+                color: #27ae60;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Daily Activity Planner</h1>
+            <table>
+                <thead>
+                    <tr id="headerRow">
+                        <th>Hour</th>
+                    </tr>
+                </thead>
+                <tbody id="planBody"></tbody>
+            </table>
+        </div>
+
+        <script>
+            const FIRST_HOUR = 8;
+            const LAST_HOUR = 22;
+            const INTERVAL_MINUTES = 10;
+            const INTERVALS_PER_HOUR = 60 / INTERVAL_MINUTES;
+            const STORAGE_KEY = "standup-v3-plan";
+
+            const activities = [
+                { type: "sitting", label: "Sit", icon: "fa-chair" },
+                { type: "standing", label: "Stand", icon: "fa-male" },
+                { type: "walking", label: "Walk", icon: "fa-walking" },
+            ];
+
+            // plan[hour][interval] = activity type, or null when nothing is selected
+            const plan = loadPlan();
+
+            function loadPlan() {
+                let saved = {};
+                try {
+                    saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+                } catch (e) {}
+                const result = {};
+                for (let hour = FIRST_HOUR; hour <= LAST_HOUR; hour++) {
+                    result[hour] = [];
+                    for (let i = 0; i < INTERVALS_PER_HOUR; i++) {
+                        result[hour][i] = saved[hour]?.[i] ?? null;
+                    }
+                }
+                return result;
+            }
+
+            function savePlan() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
+            }
+
+            function formatMinutes(minutes) {
+                return minutes === 60 ? "1h" : `${minutes}m`;
+            }
+
+            function buildHeader() {
+                const headerRow = document.getElementById("headerRow");
+                for (let i = 0; i < INTERVALS_PER_HOUR; i++) {
+                    const th = document.createElement("th");
+                    th.textContent = `:${String(i * INTERVAL_MINUTES).padStart(2, "0")}`;
+                    headerRow.appendChild(th);
+                }
+                activities.forEach((activity) => {
+                    const th = document.createElement("th");
+                    th.className = `total-head ${activity.type}`;
+                    th.innerHTML = `<i class="fas ${activity.icon}"></i>${activity.label}`;
+                    headerRow.appendChild(th);
+                });
+            }
+
+            function buildBody() {
+                const body = document.getElementById("planBody");
+                for (let hour = FIRST_HOUR; hour <= LAST_HOUR; hour++) {
+                    const row = document.createElement("tr");
+                    row.id = `hour-${hour}`;
+
+                    const hourCell = document.createElement("td");
+                    hourCell.className = "hour-label";
+                    hourCell.textContent = `${hour}:00`;
+                    row.appendChild(hourCell);
+
+                    for (let i = 0; i < INTERVALS_PER_HOUR; i++) {
+                        const cell = document.createElement("td");
+                        cell.className = `interval ${plan[hour][i] ?? ""}`;
+                        const name = `h${hour}-i${i}`;
+
+                        activities.forEach((activity) => {
+                            const label = document.createElement("label");
+                            const radio = document.createElement("input");
+                            radio.type = "radio";
+                            radio.name = name;
+                            radio.value = activity.type;
+                            radio.checked = plan[hour][i] === activity.type;
+                            // Clicking the already-selected option clears the cell
+                            radio.addEventListener("click", () => {
+                                if (plan[hour][i] === activity.type) {
+                                    radio.checked = false;
+                                    plan[hour][i] = null;
+                                } else {
+                                    plan[hour][i] = activity.type;
+                                }
+                                cell.className = `interval ${plan[hour][i] ?? ""}`;
+                                updateTotals(hour);
+                                savePlan();
+                            });
+                            label.appendChild(radio);
+                            label.append(` ${activity.label}`);
+                            cell.appendChild(label);
+                        });
+
+                        row.appendChild(cell);
+                    }
+
+                    activities.forEach((activity) => {
+                        const totalCell = document.createElement("td");
+                        totalCell.className = `total ${activity.type}`;
+                        totalCell.dataset.type = activity.type;
+                        row.appendChild(totalCell);
+                    });
+
+                    body.appendChild(row);
+                    updateTotals(hour);
+                }
+            }
+
+            function updateTotals(hour) {
+                const row = document.getElementById(`hour-${hour}`);
+                row.querySelectorAll("td.total").forEach((cell) => {
+                    const count = plan[hour].filter(
+                        (type) => type === cell.dataset.type,
+                    ).length;
+                    cell.textContent = formatMinutes(count * INTERVAL_MINUTES);
+                });
+            }
+
+            function highlightCurrentHour() {
+                const currentHour = new Date().getHours();
+                document.querySelectorAll("#planBody tr").forEach((row) => {
+                    row.classList.toggle(
+                        "current",
+                        row.id === `hour-${currentHour}`,
+                    );
+                });
+            }
+
+            buildHeader();
+            buildBody();
+            highlightCurrentHour();
+            setInterval(highlightCurrentHour, 60000);
+        </script>
+    </body>
+</html>
