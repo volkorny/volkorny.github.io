@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 Minute Interval Timer</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --fg: #1d1d1f;
+    --muted: #6e6e73;
+    --accent: #0a84ff;
+    --warn: #ff3b30;
+    --btn-bg: #ffffff;
+    --btn-border: #d2d2d7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --fg: #f5f5f7;
+      --muted: #98989d;
+      --btn-bg: #2c2c2e;
+      --btn-border: #3a3a3c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 16px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #time {
+    font-size: clamp(64px, 22vw, 180px);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    transition: color 0.2s;
+  }
+  #time.warn { color: var(--warn); }
+  #info { color: var(--muted); font-size: 18px; }
+  .progress {
+    width: min(480px, 100%);
+    height: 14px;
+    cursor: pointer;
+    background: var(--btn-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  #bar {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+  }
+  .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+  button {
+    font-size: 18px;
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--fg);
+    cursor: pointer;
+    min-width: 120px;
+  }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+  <div id="time">10:00</div>
+  <div class="progress" id="progress" title="Click to jump"><div id="bar"></div></div>
+  <div id="info">Interval #1</div>
+  <div class="buttons">
+    <button id="startPause" class="primary">Start</button>
+    <button id="reset">Reset</button>
+    <button id="testSound">Play now</button>
+  </div>
+
+<script>
+  const INTERVAL_MS = 10 * 60 * 1000;
+  const WARN_SECONDS = 5;
+
+  const timeEl = document.getElementById('time');
+  const barEl = document.getElementById('bar');
+  const infoEl = document.getElementById('info');
+  const startPauseBtn = document.getElementById('startPause');
+  const resetBtn = document.getElementById('reset');
+  const testSoundBtn = document.getElementById('testSound');
+  const progressEl = document.getElementById('progress');
+
+  let running = false;
+  let endTime = 0;          // timestamp when the current interval ends
+  let remainingMs = INTERVAL_MS;
+  let intervalCount = 1;
+  let lastBeepSecond = null;
+  let tickId = null;
+  let audioCtx = null;
+
+  function beep(freq = 880, duration = 0.15) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const t = audioCtx.currentTime;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + duration + 0.02);
+  }
+
+  function format(ms) {
+    const total = Math.ceil(ms / 1000);
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function render() {
+    timeEl.textContent = format(remainingMs);
+    const secondsLeft = Math.ceil(remainingMs / 1000);
+    timeEl.classList.toggle('warn', secondsLeft <= WARN_SECONDS && secondsLeft > 0);
+    barEl.style.width = `${((INTERVAL_MS - remainingMs) / INTERVAL_MS) * 100}%`;
+    infoEl.textContent = `Interval #${intervalCount}`;
+    document.title = `${format(remainingMs)} – Interval Timer`;
+  }
+
+  function tick() {
+    remainingMs = endTime - Date.now();
+
+    if (remainingMs <= 0) {
+      // Interval finished: long beep and restart
+      beep(1320, 0.6);
+      intervalCount++;
+      endTime += INTERVAL_MS;
+      remainingMs = endTime - Date.now();
+      lastBeepSecond = null;
+    }
+
+    const secondsLeft = Math.ceil(remainingMs / 1000);
+    if (secondsLeft <= WARN_SECONDS && secondsLeft !== lastBeepSecond) {
+      lastBeepSecond = secondsLeft;
+      beep(880, 0.15);
+    }
+
+    render();
+  }
+
+  function start() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    endTime = Date.now() + remainingMs;
+    running = true;
+    tickId = setInterval(tick, 100);
+    startPauseBtn.textContent = 'Pause';
+  }
+
+  function pause() {
+    clearInterval(tickId);
+    remainingMs = endTime - Date.now();
+    running = false;
+    startPauseBtn.textContent = 'Resume';
+    render();
+  }
+
+  function reset() {
+    clearInterval(tickId);
+    running = false;
+    remainingMs = INTERVAL_MS;
+    intervalCount = 1;
+    lastBeepSecond = null;
+    startPauseBtn.textContent = 'Start';
+    render();
+  }
+
+  // Jump to 00:07 so the last-5-seconds beeps and restart can be heard right away
+  function playNow() {
+    remainingMs = 7000;
+    lastBeepSecond = null;
+    if (running) {
+      endTime = Date.now() + remainingMs;
+    } else {
+      start();
+    }
+    render();
+  }
+
+  // Click on the progress bar to jump to that point in the interval
+  function seek(e) {
+    const rect = progressEl.getBoundingClientRect();
+    const fraction = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+    remainingMs = Math.max(INTERVAL_MS * (1 - fraction), 1000);
+    lastBeepSecond = null;
+    if (running) endTime = Date.now() + remainingMs;
+    render();
+  }
+
+  startPauseBtn.addEventListener('click', () => running ? pause() : start());
+  progressEl.addEventListener('click', seek);
+  testSoundBtn.addEventListener('click', playNow);
+  resetBtn.addEventListener('click', reset);
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); running ? pause() : start(); }
+    if (e.key === 'r' || e.key === 'R') reset();
+  });
+
+  render();
+</script>
+</body>
+</html>

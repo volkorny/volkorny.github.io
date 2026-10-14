@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Daily Activity Planner</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <style>
+            :root {
+                --bg: #f4f5fb;
+                --surface: #ffffff;
+                --border: #e6e8f0;
+                --text: #1f2433;
+                --muted: #8a90a6;
+                --accent: #6366f1;
+
+                --sit: #f87171;
+                --sit-soft: #fee2e2;
+                --stand: #22c55e;
+                --stand-soft: #e6f7ed;
+                --walk: #d4a017;
+                --walk-soft: #fdf6d8;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
+                    Roboto, sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+                padding: 32px 20px;
+            }
+
+            .container {
+                max-width: 1240px;
+                margin: 0 auto;
+            }
+
+            header {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 1.75em;
+                font-weight: 650;
+                letter-spacing: -0.02em;
+            }
+
+            .hint {
+                color: var(--muted);
+                font-size: 0.9em;
+            }
+
+            .header-actions {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .reset-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 14px;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                background: var(--surface);
+                color: var(--text);
+                font: inherit;
+                font-size: 0.9em;
+                cursor: pointer;
+                transition:
+                    color 0.15s ease,
+                    border-color 0.15s ease;
+            }
+
+            .reset-btn:hover {
+                color: var(--sit);
+                border-color: var(--sit);
+            }
+
+            .card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th {
+                background: var(--surface);
+                font-size: 0.75em;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--muted);
+                padding: 14px 8px;
+                border-bottom: 1px solid var(--border);
+                white-space: nowrap;
+            }
+
+            th.hour-head {
+                text-align: left;
+                padding-left: 20px;
+            }
+
+            tbody tr + tr td,
+            tbody tr + tr th {
+                border-top: 1px solid var(--border);
+            }
+
+            td {
+                padding: 8px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            td.hour-label {
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                padding-left: 20px;
+                text-align: left;
+                white-space: nowrap;
+                position: relative;
+            }
+
+            tr.current td.hour-label {
+                color: var(--accent);
+            }
+
+            tr.current td.hour-label::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 8px;
+                bottom: 8px;
+                width: 4px;
+                border-radius: 0 4px 4px 0;
+                background: var(--accent);
+            }
+
+            tr.current {
+                background: #f8f8ff;
+            }
+
+            /* --- Segmented control (one per 10-minute interval) --- */
+            .segmented {
+                display: inline-flex;
+                flex-direction: column;
+                padding: 3px;
+                gap: 2px;
+                border-radius: 10px;
+                background: #f1f2f7;
+                transition: background 0.2s ease;
+            }
+
+            .segmented.sitting {
+                background: var(--sit-soft);
+            }
+
+            .segmented.standing {
+                background: var(--stand-soft);
+            }
+
+            .segmented.walking {
+                background: var(--walk-soft);
+            }
+
+            .segmented.now {
+                box-shadow: 0 0 0 2px var(--accent);
+            }
+
+            /* Blink the frame during the first minute of a new slot */
+            .segmented.now.blink {
+                animation: frame-blink 1s ease-in-out infinite;
+            }
+
+            @keyframes frame-blink {
+                50% {
+                    box-shadow: 0 0 0 4px transparent;
+                }
+            }
+
+            .segmented label {
+                position: relative;
+                display: grid;
+                place-items: center;
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+                color: #b4b9cc;
+                cursor: pointer;
+                transition:
+                    background 0.15s ease,
+                    color 0.15s ease,
+                    transform 0.1s ease;
+            }
+
+            .segmented label:hover {
+                color: var(--text);
+                background: rgba(255, 255, 255, 0.8);
+            }
+
+            .segmented label:active {
+                transform: scale(0.92);
+            }
+
+            /* Keep the native radio for keyboard/screen readers, but hide it */
+            .segmented input {
+                position: absolute;
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .segmented label:has(input:focus-visible) {
+                outline: 2px solid var(--accent);
+                outline-offset: 1px;
+            }
+
+            .segmented label:has(input:checked) {
+                color: white;
+                box-shadow: 0 1px 3px rgba(16, 24, 40, 0.2);
+            }
+
+            .segmented label.sitting:has(input:checked) {
+                background: var(--sit);
+            }
+
+            .segmented label.standing:has(input:checked) {
+                background: var(--stand);
+            }
+
+            .segmented label.walking:has(input:checked) {
+                background: var(--walk);
+            }
+
+            /* --- Summary (one chip per activity, aligned with the icon rows) --- */
+            .summary {
+                display: inline-flex;
+                flex-direction: column;
+                gap: 2px;
+                padding: 3px 0;
+            }
+
+            .chip {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                min-width: 72px;
+                height: 30px;
+                padding: 0 10px;
+                border-radius: 999px;
+                font-size: 0.85em;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                transition: all 0.2s ease;
+            }
+
+            .chip.empty {
+                color: #c4c8d6;
+                background: transparent;
+            }
+
+            .chip.sitting:not(.empty) {
+                color: var(--sit);
+                background: var(--sit-soft);
+            }
+
+            .chip.standing:not(.empty) {
+                color: var(--stand);
+                background: var(--stand-soft);
+            }
+
+            .chip.walking:not(.empty) {
+                color: var(--walk);
+                background: var(--walk-soft);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Daily Activity Planner</h1>
+                <div class="header-actions">
+                    <span class="hint">Click an icon to pick, click again to clear</span>
+                    <button id="resetPlan" class="reset-btn" type="button">
+                        <i class="fas fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+            </header>
+            <div class="card">
+                <table>
+                    <thead id="planHead"></thead>
+                    <tbody id="planBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <script>
+            const FIRST_HOUR = 8;
+            const LAST_HOUR = 22;
+            const INTERVAL_MINUTES = 10;
+            const INTERVALS_PER_HOUR = 60 / INTERVAL_MINUTES;
+            const HEADER_REPEAT_HOURS = 3;
+            const STORAGE_KEY = "standup-v4-plan";
+
+            const activities = [
+                { type: "walking", label: "Walk", icon: "fa-person-walking" },
+                { type: "standing", label: "Stand", icon: "fa-person" },
+                { type: "sitting", label: "Sit", icon: "fa-chair" },
+            ];
+
+            // plan[hour][interval] = activity type, or null when nothing is selected
+            const plan = loadPlan();
+
+            function loadPlan() {
+                let saved = {};
+                try {
+                    saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+                } catch (e) {}
+                const result = {};
+                for (let hour = FIRST_HOUR; hour <= LAST_HOUR; hour++) {
+                    result[hour] = [];
+                    for (let i = 0; i < INTERVALS_PER_HOUR; i++) {
+                        result[hour][i] = saved[hour]?.[i] ?? null;
+                    }
+                }
+                return result;
+            }
+
+            function savePlan() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
+            }
+
+            function formatMinutes(minutes) {
+                return minutes === 60 ? "1h" : `${minutes}m`;
+            }
+
+            function createHeaderRow() {
+                const headerRow = document.createElement("tr");
+                const hourTh = document.createElement("th");
+                hourTh.className = "hour-head";
+                hourTh.textContent = "Hour";
+                headerRow.appendChild(hourTh);
+                for (let i = 0; i < INTERVALS_PER_HOUR; i++) {
+                    const th = document.createElement("th");
+                    th.textContent = `:${String(i * INTERVAL_MINUTES).padStart(2, "0")}`;
+                    headerRow.appendChild(th);
+                }
+                const th = document.createElement("th");
+                th.textContent = "Summary";
+                headerRow.appendChild(th);
+                return headerRow;
+            }
+
+            function buildBody() {
+                document.getElementById("planHead").appendChild(createHeaderRow());
+                const body = document.getElementById("planBody");
+                for (let hour = FIRST_HOUR; hour <= LAST_HOUR; hour++) {
+                    // Repeat the header every few hours to keep columns readable
+                    if (
+                        hour > FIRST_HOUR &&
+                        (hour - FIRST_HOUR) % HEADER_REPEAT_HOURS === 0
+                    ) {
+                        body.appendChild(createHeaderRow());
+                    }
+
+                    const row = document.createElement("tr");
+                    row.id = `hour-${hour}`;
+
+                    const hourCell = document.createElement("td");
+                    hourCell.className = "hour-label";
+                    hourCell.textContent = `${hour}:00`;
+                    row.appendChild(hourCell);
+
+                    for (let i = 0; i < INTERVALS_PER_HOUR; i++) {
+                        const cell = document.createElement("td");
+                        const group = document.createElement("div");
+                        group.className = `segmented ${plan[hour][i] ?? ""}`;
+                        group.id = `slot-${hour}-${i}`;
+                        group.setAttribute("role", "radiogroup");
+                        group.setAttribute(
+                            "aria-label",
+                            `${hour}:${String(i * INTERVAL_MINUTES).padStart(2, "0")}`,
+                        );
+                        const name = `h${hour}-i${i}`;
+
+                        activities.forEach((activity) => {
+                            const label = document.createElement("label");
+                            label.className = activity.type;
+                            label.title = activity.label;
+
+                            const radio = document.createElement("input");
+                            radio.type = "radio";
+                            radio.name = name;
+                            radio.value = activity.type;
+                            radio.setAttribute("aria-label", activity.label);
+                            radio.checked = plan[hour][i] === activity.type;
+                            // Clicking the already-selected option clears the cell
+                            radio.addEventListener("click", () => {
+                                if (plan[hour][i] === activity.type) {
+                                    radio.checked = false;
+                                    plan[hour][i] = null;
+                                } else {
+                                    plan[hour][i] = activity.type;
+                                }
+                                group.className = `segmented ${plan[hour][i] ?? ""}`;
+                                highlightNow();
+                                updateTotals(hour);
+                                savePlan();
+                            });
+
+                            const icon = document.createElement("i");
+                            icon.className = `fas ${activity.icon}`;
+
+                            label.appendChild(radio);
+                            label.appendChild(icon);
+                            group.appendChild(label);
+                        });
+
+                        cell.appendChild(group);
+                        row.appendChild(cell);
+                    }
+
+                    const summaryCell = document.createElement("td");
+                    const summary = document.createElement("div");
+                    summary.className = "summary";
+                    activities.forEach((activity) => {
+                        const chip = document.createElement("span");
+                        chip.className = `chip ${activity.type}`;
+                        chip.dataset.type = activity.type;
+                        chip.title = activity.label;
+
+                        const icon = document.createElement("i");
+                        icon.className = `fas ${activity.icon}`;
+                        const value = document.createElement("span");
+                        value.className = "chip-value";
+
+                        chip.appendChild(icon);
+                        chip.appendChild(value);
+                        summary.appendChild(chip);
+                    });
+                    summaryCell.appendChild(summary);
+                    row.appendChild(summaryCell);
+
+                    body.appendChild(row);
+                    updateTotals(hour);
+                }
+            }
+
+            function updateTotals(hour) {
+                const row = document.getElementById(`hour-${hour}`);
+                row.querySelectorAll(".chip").forEach((chip) => {
+                    const count = plan[hour].filter(
+                        (type) => type === chip.dataset.type,
+                    ).length;
+                    chip.querySelector(".chip-value").textContent = formatMinutes(
+                        count * INTERVAL_MINUTES,
+                    );
+                    chip.classList.toggle("empty", count === 0);
+                });
+            }
+
+            // Highlight the current hour row and the current 10-minute slot
+            function highlightNow() {
+                const now = new Date();
+                const hour = now.getHours();
+                const slot = Math.floor(now.getMinutes() / INTERVAL_MINUTES);
+                const isFirstMinute = now.getMinutes() % INTERVAL_MINUTES === 0;
+                document.querySelectorAll("#planBody tr").forEach((row) => {
+                    row.classList.toggle("current", row.id === `hour-${hour}`);
+                });
+                document.querySelectorAll(".segmented").forEach((group) => {
+                    const isNow = group.id === `slot-${hour}-${slot}`;
+                    group.classList.toggle("now", isNow);
+                    group.classList.toggle("blink", isNow && isFirstMinute);
+                });
+            }
+
+            // Clear every slot in the plan
+            function resetPlan() {
+                if (!confirm("Clear all selections?")) return;
+                for (let hour = FIRST_HOUR; hour <= LAST_HOUR; hour++) {
+                    for (let i = 0; i < INTERVALS_PER_HOUR; i++) {
+                        plan[hour][i] = null;
+                        document.getElementById(`slot-${hour}-${i}`).className = "segmented";
+                    }
+                    updateTotals(hour);
+                }
+                document
+                    .querySelectorAll(".segmented input:checked")
+                    .forEach((radio) => (radio.checked = false));
+                highlightNow();
+                savePlan();
+            }
+
+            document.getElementById("resetPlan").addEventListener("click", resetPlan);
+
+            buildBody();
+            highlightNow();
+            // Every second, so blinking starts right when a new slot begins
+            setInterval(highlightNow, 1000);
+        </script>
+    </body>
+</html>
